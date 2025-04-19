@@ -16,7 +16,6 @@
 
 
 from PIL import Image
-
 from rag.app.picture import vision_llm_chunk as picture_vision_llm_chunk
 from rag.prompts import vision_llm_figure_describe_prompt
 

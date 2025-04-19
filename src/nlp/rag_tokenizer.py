@@ -1,31 +1,15 @@
-#
-#  Copyright 2024 The InfiniFlow Authors. All Rights Reserved.
-#
-#  Licensed under the Apache License, Version 2.0 (the "License");
-#  you may not use this file except in compliance with the License.
-#  You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-#  Unless required by applicable law or agreed to in writing, software
-#  distributed under the License is distributed on an "AS IS" BASIS,
-#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#  See the License for the specific language governing permissions and
-#  limitations under the License.
-#
-
-import logging
 import copy
-import datrie
 import math
 import os
 import re
 import string
 import sys
+
+import datrie
 from hanziconv import HanziConv
+from loguru import logger
 from nltk import word_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
-from api.utils.file_utils import get_project_base_directory
 
 
 class RagTokenizer:
@@ -36,7 +20,7 @@ class RagTokenizer:
         return str(("DD" + (line[::-1].lower())).encode("utf-8"))[2:-1]
 
     def loadDict_(self, fnm):
-        logging.info(f"[HUQIE]:Build trie from {fnm}")
+        logger.info(f"[HUQIE]:Build trie from {fnm}")
         try:
             of = open(fnm, "r", encoding="utf-8")
             while True:
@@ -52,16 +36,16 @@ class RagTokenizer:
                 self.trie_[self.rkey_(line[0])] = 1
 
             dict_file_cache = fnm + ".trie"
-            logging.info(f"[HUQIE]:Build trie cache to {dict_file_cache}")
+            logger.info(f"[HUQIE]:Build trie cache to {dict_file_cache}")
             self.trie_.save(dict_file_cache)
             of.close()
         except Exception:
-            logging.exception(f"[HUQIE]:Build trie {fnm} failed")
+            logger.exception(f"[HUQIE]:Build trie {fnm} failed")
 
     def __init__(self, debug=False):
         self.DEBUG = debug
         self.DENOMINATOR = 1000000
-        self.DIR_ = os.path.join(get_project_base_directory(), "rag/res", "huqie")
+        self.DIR_ = os.path.join(os.path.dirname(__file__), "res", "huqie")
 
         self.stemmer = PorterStemmer()
         self.lemmatizer = WordNetLemmatizer()
@@ -77,13 +61,13 @@ class RagTokenizer:
                 return
             except Exception:
                 # fail to load trie from file, build default trie
-                logging.exception(
+                logger.exception(
                     f"[HUQIE]:Fail to load trie file {trie_file_name}, build the default trie file"
                 )
                 self.trie_ = datrie.Trie(string.printable)
         else:
             # file not exist, build default trie
-            logging.info(
+            logger.info(
                 f"[HUQIE]:Trie file {trie_file_name} not found, build the default trie file"
             )
             self.trie_ = datrie.Trie(string.printable)
@@ -233,7 +217,7 @@ class RagTokenizer:
             tks.append(tk)
         # F /= len(tks)
         L /= len(tks)
-        logging.debug(
+        logger.debug(
             "[SC] {} {} {} {} {}".format(tks, len(tks), L, F, B / len(tks) + L + F)
         )
         return tks, B / len(tks) + L + F
@@ -364,8 +348,8 @@ class RagTokenizer:
             tks, s = self.maxForward_(L)
             tks1, s1 = self.maxBackward_(L)
             if self.DEBUG:
-                logging.debug("[FW] {} {}".format(tks, s))
-                logging.debug("[BW] {} {}".format(tks1, s1))
+                logger.debug("[FW] {} {}".format(tks, s))
+                logger.debug("[BW] {} {}".format(tks1, s1))
 
             i, j, _i, _j = 0, 0, 0, 0
             same = 0
@@ -421,7 +405,7 @@ class RagTokenizer:
                 res.append(" ".join(self.sortTks_(tkslist)[0][0]))
 
         res = " ".join(res)
-        logging.debug("[TKS] {}".format(self.merge_(res)))
+        logger.debug("[TKS] {}".format(self.merge_(res)))
         return self.merge_(res)
 
     def fine_grained_tokenize(self, tks):
@@ -511,35 +495,35 @@ if __name__ == "__main__":
     tks = tknzr.tokenize(
         "哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈"
     )
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize(
         "公开征求意见稿提出，境外投资者可使用自有人民币或外汇投资。使用外汇投资的，可通过债券持有人在香港人民币业务清算行及香港地区经批准可进入境内银行间外汇市场进行交易的境外人民币业务参加行（以下统称香港结算行）办理外汇资金兑换。香港结算行由此所产生的头寸可到境内银行间外汇市场平盘。使用外汇投资的，在其投资的债券到期或卖出后，原则上应兑换回外汇。"
     )
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize(
         "多校划片就是一个小区对应多个小学初中，让买了学区房的家庭也不确定到底能上哪个学校。目的是通过这种方式为学区房降温，把就近入学落到实处。南京市长江大桥"
     )
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize(
         "实际上当时他们已经将业务中心偏移到安全部门和针对政府企业的部门 Scripts are compiled and cached aaaaaaaaa"
     )
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize("虽然我不怎么玩")
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize("蓝月亮如何在外资夹击中生存,那是全宇宙最有意思的")
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize(
         "涡轮增压发动机num最大功率,不像别的共享买车锁电子化的手段,我们接过来是否有意义,黄黄爱美食,不过，今天阿奇要讲到的这家农贸市场，说实话，还真蛮有特色的！不仅环境好，还打出了"
     )
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize("这周日你去吗？这周日你有空吗？")
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize("Unity3D开发经验 测试开发工程师 c++双11双11 985 211 ")
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     tks = tknzr.tokenize(
         "数据分析项目经理|数据分析挖掘|数据分析方向|商品数据分析|搜索数据分析 sql python hive tableau Cocos2d-"
     )
-    logging.info(tknzr.fine_grained_tokenize(tks))
+    logger.info(tknzr.fine_grained_tokenize(tks))
     if len(sys.argv) < 2:
         sys.exit()
     tknzr.DEBUG = False
@@ -549,5 +533,5 @@ if __name__ == "__main__":
         line = of.readline()
         if not line:
             break
-        logging.info(tknzr.tokenize(line))
+        logger.info(tknzr.tokenize(line))
     of.close()

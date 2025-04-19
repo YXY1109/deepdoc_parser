@@ -12,6 +12,8 @@
 ### ruff代码管理
 
 ```
+isort：ruff check --select I --fix .
 格式化：ruff format
+
 检查：ruff check
 ```
