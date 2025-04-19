@@ -24,9 +24,13 @@ class RAGFlowPptParser:
         super().__init__()
 
     def __get_bulleted_text(self, paragraph):
-        is_bulleted = bool(paragraph._p.xpath("./a:pPr/a:buChar")) or bool(paragraph._p.xpath("./a:pPr/a:buAutoNum")) or bool(paragraph._p.xpath("./a:pPr/a:buBlip"))
+        is_bulleted = (
+            bool(paragraph._p.xpath("./a:pPr/a:buChar"))
+            or bool(paragraph._p.xpath("./a:pPr/a:buAutoNum"))
+            or bool(paragraph._p.xpath("./a:pPr/a:buBlip"))
+        )
         if is_bulleted:
-            return f"{'  '* paragraph.level}.{paragraph.text}"
+            return f"{'  ' * paragraph.level}.{paragraph.text}"
         else:
             return paragraph.text
 
@@ -35,8 +39,15 @@ class RAGFlowPptParser:
             tb = shape.table
             rows = []
             for i in range(1, len(tb.rows)):
-                rows.append("; ".join([tb.cell(
-                    0, j).text + ": " + tb.cell(i, j).text for j in range(len(tb.columns)) if tb.cell(i, j)]))
+                rows.append(
+                    "; ".join(
+                        [
+                            tb.cell(0, j).text + ": " + tb.cell(i, j).text
+                            for j in range(len(tb.columns))
+                            if tb.cell(i, j)
+                        ]
+                    )
+                )
             return "\n".join(rows)
 
         if shape.has_text_frame:
@@ -56,9 +67,7 @@ class RAGFlowPptParser:
             return "\n".join(texts)
 
     def __call__(self, fnm, from_page, to_page, callback=None):
-        ppt = Presentation(fnm) if isinstance(
-            fnm, str) else Presentation(
-            BytesIO(fnm))
+        ppt = Presentation(fnm) if isinstance(fnm, str) else Presentation(BytesIO(fnm))
         txts = []
         self.total_page = len(ppt.slides)
         for i, slide in enumerate(ppt.slides):
@@ -68,7 +77,9 @@ class RAGFlowPptParser:
                 break
             texts = []
             for shape in sorted(
-                    slide.shapes, key=lambda x: ((x.top if x.top is not None else 0) // 10, x.left)):
+                slide.shapes,
+                key=lambda x: ((x.top if x.top is not None else 0) // 10, x.left),
+            ):
                 try:
                     txt = self.__extract(shape)
                     if txt:

@@ -1,4 +1,5 @@
-from parser.nlp_utils import find_codec
+# from parser.nlp_utils import find_codec
+from src.nlp.nlp_utils import find_codec
 
 
 def get_text(fnm: str, binary=None) -> str:

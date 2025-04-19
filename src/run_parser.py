@@ -1,4 +1,4 @@
-from parser import TxtParser
+from parser import TxtParser, DocxParser
 
 
 def test_docx_parser(file_path):
@@ -24,11 +24,11 @@ def test_txt_parser(file_path):
 
 
 if __name__ == "__main__":
-    txt_file = "file/demo.txt"
-    test_txt_parser(txt_file)
+    # txt_file = "file/test.txt"
+    # test_txt_parser(txt_file)
 
-    docx_file = "path/to/your/file.docx"
+    docx_file = "file/test.docx"
+    test_docx_parser(docx_file)
+
     excel_file = "path/to/your/file.xlsx"
-
-    # test_docx_parser(docx_file)
     # test_excel_parser(excel_file)

@@ -1,11 +1,17 @@
 import re
 
-from parser.nlp_utils import num_tokens_from_string
-from parser.utils import get_text
+from src.nlp.nlp_utils import num_tokens_from_string
+from src.parser.utils import get_text
+
+
+# from parser.nlp_utils import num_tokens_from_string
+# from parser.utils import get_text
 
 
 class RAGFlowTxtParser:
-    def __call__(self, fnm, binary=None, chunk_token_num=128, delimiter="\n!?;。；！？"):
+    def __call__(
+        self, fnm, binary=None, chunk_token_num=128, delimiter="\n!?;。；！？"
+    ):
         txt = get_text(fnm, binary)
         return self.parser_txt(txt, chunk_token_num, delimiter)
 
@@ -15,7 +21,12 @@ class RAGFlowTxtParser:
             raise TypeError("txt type should be str!")
         cks = [""]
         tk_nums = [0]
-        delimiter = delimiter.encode('utf-8').decode('unicode_escape').encode('latin1').decode('utf-8')
+        delimiter = (
+            delimiter.encode("utf-8")
+            .decode("unicode_escape")
+            .encode("latin1")
+            .decode("utf-8")
+        )
 
         def add_chunk(t):
             nonlocal cks, tk_nums, delimiter
@@ -32,7 +43,7 @@ class RAGFlowTxtParser:
         for m in re.finditer(r"`([^`]+)`", delimiter, re.I):
             f, t = m.span()
             dels.append(m.group(1))
-            dels.extend(list(delimiter[s: f]))
+            dels.extend(list(delimiter[s:f]))
             s = t
         if s < len(delimiter):
             dels.extend(list(delimiter[s:]))
