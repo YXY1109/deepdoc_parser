@@ -10,8 +10,10 @@ def test_docx_parser(file_path):
 
 
 def test_excel_parser(file_path):
-    parser = ExcelParser()
-    res = parser(file_path)
+    with open(file_path, "rb") as file:
+        file_bytes = file.read()
+        parser = ExcelParser()
+        res = parser(file_bytes)
     print("Excel 解析结果：")
     print(res)
 
